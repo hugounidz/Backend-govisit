@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
  * 2. Configuración de la base de datos
  */
 $host    = 'localhost';
-$db_name = 'govisit';
+$db_name = 'govisit_app';
 $user    = 'root';
 $pass    = '';
 $charset = 'utf8mb4';

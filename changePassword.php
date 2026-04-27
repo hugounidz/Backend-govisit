@@ -10,7 +10,7 @@ $id = $data['id'] ?? null;
 $actual = $data['actual'] ?? '';
 $nueva = $data['nueva'] ?? '';
 
-// 🧠 Validación
+// 🧠 Validación básica
 if (!$id || !$actual || !$nueva) {
     echo json_encode([
         "success" => false,
@@ -21,7 +21,7 @@ if (!$id || !$actual || !$nueva) {
 
 try {
 
-    // 🔍 Obtener contraseña actual de la BD
+    // 🔍 Obtener contraseña actual (HASH)
     $sql = "SELECT password FROM usuarios WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id]);
@@ -36,36 +36,40 @@ try {
         exit;
     }
 
-    // 🔐 Validar contraseña actual
-if ($usuario['password'] !== $actual) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Contraseña actual incorrecta"
-    ]);
-    exit;
-}
+    // 🔐 VALIDAR PASSWORD ACTUAL (CORRECTO)
+    if (!password_verify($actual, $usuario['password'])) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Contraseña actual incorrecta"
+        ]);
+        exit;
+    }
 
-// 🔥 nueva != actual
-if ($actual === $nueva) {
-    echo json_encode([
-        "success" => false,
-        "message" => "La nueva contraseña no puede ser igual a la actual"
-    ]);
-    exit;
-}
+    // 🔥 nueva != actual
+    if ($actual === $nueva) {
+        echo json_encode([
+            "success" => false,
+            "message" => "La nueva contraseña no puede ser igual a la actual"
+        ]);
+        exit;
+    }
 
+    // 🔒 validar longitud
     if (strlen($nueva) < 8) {
-    echo json_encode([
-        "success" => false,
-        "message" => "La contraseña debe tener al menos 8 caracteres"
-    ]);
-    exit;
-}
+        echo json_encode([
+            "success" => false,
+            "message" => "La contraseña debe tener al menos 8 caracteres"
+        ]);
+        exit;
+    }
+
+    // 🔐 HASH NUEVA CONTRASEÑA
+    $nuevaHash = password_hash($nueva, PASSWORD_DEFAULT);
 
     // 🧱 Actualizar contraseña
     $sql = "UPDATE usuarios SET password = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$nueva, $id]);
+    $stmt->execute([$nuevaHash, $id]);
 
     echo json_encode([
         "success" => true,

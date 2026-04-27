@@ -7,6 +7,20 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 $user_id = $data['user_id'] ?? null;
 
+$sqlUser = "SELECT nombre FROM usuarios WHERE id = ?";
+$stmtUser = $pdo->prepare($sqlUser);
+$stmtUser->execute([$user_id]);
+
+$usuario = $stmtUser->fetch();
+
+if (!$usuario) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Usuario no encontrado"
+    ]);
+    exit;
+}
+
 if (!$user_id) {
     echo json_encode([
         "success" => false,
@@ -15,7 +29,6 @@ if (!$user_id) {
     exit;
 }
 
-// 🔍 Buscar último registro
 $sql = "SELECT tipo FROM registros 
         WHERE user_id = ? 
         ORDER BY fecha DESC 
@@ -41,5 +54,6 @@ $stmt->execute([$user_id, $tipo]);
 echo json_encode([
     "success" => true,
     "tipo" => $tipo,
+    "nombre" => $usuario['nombre'],
     "message" => "Registro guardado"
 ]);
